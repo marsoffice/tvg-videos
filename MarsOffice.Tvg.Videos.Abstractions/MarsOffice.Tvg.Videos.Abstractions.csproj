@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageId>MarsOffice.Tvg.Videos.Abstractions</PackageId>
+    <Authors>marsoffice</Authors>
+    <Company>marsoffice</Company>
+    <PackageDescription>marsoffice</PackageDescription>
+    <RepositoryUrl>https://github.com/marsoffice/tvg-videos</RepositoryUrl>
+
+  </PropertyGroup>
+
+</Project>

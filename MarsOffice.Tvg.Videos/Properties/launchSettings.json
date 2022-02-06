@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MarsOffice.Tvg.Videos": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7011"
+    }
+  }
+}
