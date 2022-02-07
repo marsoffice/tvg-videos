@@ -13,8 +13,8 @@ namespace MarsOffice.Tvg.Videos
 
         }
 
-        [FunctionName("ConsumeGenerateVideo")]
-        public void ConsumeGenerateVideo([QueueTrigger("generate-video", Connection = "localsaconnectionstring")] GenerateVideo myQueueItem,
+        [FunctionName("GenerateVideoConsumer")]
+        public void Run([QueueTrigger("generate-video", Connection = "localsaconnectionstring")] GenerateVideo myQueueItem,
         ILogger log)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
