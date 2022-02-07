@@ -11,4 +11,8 @@
 
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MarsOffice.Tvg.Jobs.Abstractions" Version="1.0.0-dev.13" />
+  </ItemGroup>
+
 </Project>
