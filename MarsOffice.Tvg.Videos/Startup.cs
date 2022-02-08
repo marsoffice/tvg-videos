@@ -21,7 +21,10 @@ namespace MarsOffice.Tvg.Videos
 
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            
+            builder.Services.AddAutoMapper((svc, cfg) =>
+            {
+                cfg.AllowNullCollections = true;
+            }, typeof(Startup).Assembly);
         }
     }
 }
