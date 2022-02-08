@@ -61,7 +61,7 @@
       "options": {
         "cwd": "${workspaceFolder}/MarsOffice.Tvg.Videos/bin/Debug/net6.0"
       },
-      "command": "host start --port 7011",
+      "command": "host start --port 7005",
       "isBackground": true,
       "problemMatcher": "$func-dotnet-watch"
     }
