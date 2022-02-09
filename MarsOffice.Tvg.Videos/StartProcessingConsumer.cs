@@ -30,34 +30,72 @@ namespace MarsOffice.Tvg.Videos
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
             ILogger log)
         {
-            var mergeOperation = TableOperation.Merge(new VideoEntity {
-                PartitionKey = request.Video.JobId,
-                RowKey = request.Video.Id,
-                ETag = "*",
-                Status = VideoStatus.Generating
-            });
-            await videosTable.ExecuteAsync(mergeOperation);
-
-            var dto = request.Video;
-            dto.Status = VideoStatus.Generating;
-
             try
             {
-                using var serviceManager = new ServiceManagerBuilder()
-                    .WithOptions(option =>
-                    {
-                        option.ConnectionString = _config["signalrconnectionstring"];
-                    })
-                    .BuildServiceManager();
-                using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
-                await hubContext.Clients.User(request.Job.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                var mergeOperation = TableOperation.Merge(new VideoEntity
+                {
+                    PartitionKey = request.Video.JobId,
+                    RowKey = request.Video.Id,
+                    ETag = "*",
+                    Status = VideoStatus.Generating
+                });
+                await videosTable.ExecuteAsync(mergeOperation);
+
+                var dto = request.Video;
+                dto.Status = VideoStatus.Generating;
+
+                try
+                {
+                    using var serviceManager = new ServiceManagerBuilder()
+                        .WithOptions(option =>
+                        {
+                            option.ConnectionString = _config["signalrconnectionstring"];
+                        })
+                        .BuildServiceManager();
+                    using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
+                    await hubContext.Clients.User(request.Job.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    log.LogError(e, "SignalR sending error");
+                }
+
+                // TODO logic
+
             }
             catch (Exception e)
             {
-                log.LogError(e, "SignalR sending error");
-            }
+                log.LogError(e, "Function threw an exception");
+                var mergeOperation = TableOperation.Merge(new VideoEntity
+                {
+                    PartitionKey = request.Video.JobId,
+                    RowKey = request.Video.Id,
+                    Error = e.Message,
+                    ETag = "*",
+                    Status = VideoStatus.Error
+                });
+                await videosTable.ExecuteAsync(mergeOperation);
 
-            // TODO
+                var dto = request.Video;
+                dto.Status = VideoStatus.Error;
+                dto.Error = e.Message;
+
+                try
+                {
+                    using var serviceManager = new ServiceManagerBuilder()
+                        .WithOptions(option =>
+                        {
+                            option.ConnectionString = _config["signalrconnectionstring"];
+                        })
+                        .BuildServiceManager();
+                    using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
+                    await hubContext.Clients.User(request.Job.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(ex, "SignalR sending error");
+                }
+            }
         }
     }
 }
