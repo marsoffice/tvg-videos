@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarsOffice.Tvg.Content.Abstractions;
 using MarsOffice.Tvg.Videos.Abstractions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Azure.WebJobs;
@@ -31,13 +32,19 @@ namespace MarsOffice.Tvg.Videos
             ILogger log)
         {
             try {
-
+                // TODO
             } catch (Exception e) {
                 log.LogError(e, "Function threw an exception");
 
                 try
                 {
-                    var dto = new Video { }; // TODO
+                    var dto = new Video {
+                        Id = response.VideoId,
+                        JobId = response.JobId,
+                        UserId = response.UserId,
+                        Error = e.Message,
+                        Status = VideoStatus.Error
+                     };
                     using var serviceManager = new ServiceManagerBuilder()
                         .WithOptions(option =>
                         {
