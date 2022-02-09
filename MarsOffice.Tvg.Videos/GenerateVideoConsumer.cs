@@ -47,7 +47,7 @@ namespace MarsOffice.Tvg.Videos
                 newVideo.PartitionKey = newVideo.JobId;
                 newVideo.RowKey = newVideo.Id;
 
-                var insertOperation = TableOperation.InsertOrReplace(newVideo);
+                var insertOperation = TableOperation.Insert(newVideo);
                 await videosTable.ExecuteAsync(insertOperation);
                 var dto = _mapper.Map<Video>(newVideo);
 
@@ -78,6 +78,24 @@ namespace MarsOffice.Tvg.Videos
             {
                 log.LogError(e, "Function threw an exception");
 
+                var videoEntity = new VideoEntity
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    JobId = request.Job.Id,
+                    ETag = "*",
+                    Status = VideoStatus.Error,
+                    Error = e.Message,
+                    CreatedDate = DateTimeOffset.UtcNow,
+                    JobFireDate = request.RequestDate,
+                    UserId = request.Job.UserId,
+                    UserEmail = request.Job.UserEmail
+                };
+                videoEntity.PartitionKey = videoEntity.JobId;
+                videoEntity.RowKey = videoEntity.Id;
+
+                var insertOperation = TableOperation.InsertOrMerge(videoEntity);
+                await videosTable.ExecuteAsync(insertOperation);
+
                 try
                 {
                     using var serviceManager = new ServiceManagerBuilder()
@@ -86,14 +104,7 @@ namespace MarsOffice.Tvg.Videos
                             option.ConnectionString = _config["signalrconnectionstring"];
                         })
                         .BuildServiceManager();
-                    var dto = new Video
-                    {
-                        JobId = request.Job.Id,
-                        Error = e.Message,
-                        Status = VideoStatus.Error,
-                        UserId = request.Job.UserId,
-                        UserEmail = request.Job.UserEmail
-                    };
+                    var dto = _mapper.Map<Video>(videoEntity);
                     using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
                     await hubContext.Clients.User(request.Job.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
                 }
