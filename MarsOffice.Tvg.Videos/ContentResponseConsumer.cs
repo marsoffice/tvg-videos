@@ -27,38 +27,11 @@ namespace MarsOffice.Tvg.Videos
 
         [FunctionName("ContentResponseConsumer")]
         public async Task Run(
-            [QueueTrigger("content-response", Connection = "localsaconnectionstring")]ContentResponse response,
+            [QueueTrigger("content-response", Connection = "localsaconnectionstring")] ContentResponse response,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
             ILogger log)
         {
-            try {
-                // TODO
-            } catch (Exception e) {
-                log.LogError(e, "Function threw an exception");
-
-                try
-                {
-                    var dto = new Video {
-                        Id = response.VideoId,
-                        JobId = response.JobId,
-                        UserId = response.UserId,
-                        Error = e.Message,
-                        Status = VideoStatus.Error
-                     };
-                    using var serviceManager = new ServiceManagerBuilder()
-                        .WithOptions(option =>
-                        {
-                            option.ConnectionString = _config["signalrconnectionstring"];
-                        })
-                        .BuildServiceManager();
-                    using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
-                    await hubContext.Clients.User(response.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
-                }
-                catch (Exception ex)
-                {
-                    log.LogError(ex, "SignalR sending error");
-                }
-            }
+            // TODO
         }
     }
 }
