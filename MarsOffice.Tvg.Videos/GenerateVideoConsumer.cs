@@ -31,46 +31,77 @@ namespace MarsOffice.Tvg.Videos
         [Queue("start-processing", Connection = "localsaconnectionstring")] IAsyncCollector<StartProcessing> startProcessingQueue,
         ILogger log)
         {
-            var newVideo = new VideoEntity
-            {
-                Id = Guid.NewGuid().ToString(),
-                JobId = request.Job.Id,
-                ETag = "*",
-                Status = VideoStatus.Created,
-                CreatedDate = DateTimeOffset.UtcNow,
-                JobFireDate = request.RequestDate,
-                UserId = request.Job.UserId,
-                UserEmail = request.Job.UserEmail
-            };
-            newVideo.PartitionKey = newVideo.JobId;
-            newVideo.RowKey = newVideo.Id;
-
-            var insertOperation = TableOperation.InsertOrReplace(newVideo);
-            await videosTable.ExecuteAsync(insertOperation);
-            var dto = _mapper.Map<Video>(newVideo);
-            
             try
             {
-                using var serviceManager = new ServiceManagerBuilder()
-                    .WithOptions(option =>
-                    {
-                        option.ConnectionString = _config["signalrconnectionstring"];
-                    })
-                    .BuildServiceManager();
-                using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
-                await hubContext.Clients.User(request.Job.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                var newVideo = new VideoEntity
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    JobId = request.Job.Id,
+                    ETag = "*",
+                    Status = VideoStatus.Created,
+                    CreatedDate = DateTimeOffset.UtcNow,
+                    JobFireDate = request.RequestDate,
+                    UserId = request.Job.UserId,
+                    UserEmail = request.Job.UserEmail
+                };
+                newVideo.PartitionKey = newVideo.JobId;
+                newVideo.RowKey = newVideo.Id;
+
+                var insertOperation = TableOperation.InsertOrReplace(newVideo);
+                await videosTable.ExecuteAsync(insertOperation);
+                var dto = _mapper.Map<Video>(newVideo);
+
+                try
+                {
+                    using var serviceManager = new ServiceManagerBuilder()
+                        .WithOptions(option =>
+                        {
+                            option.ConnectionString = _config["signalrconnectionstring"];
+                        })
+                        .BuildServiceManager();
+                    using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
+                    await hubContext.Clients.User(request.Job.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    log.LogError(e, "SignalR sending error");
+                }
+
+                await startProcessingQueue.AddAsync(new StartProcessing
+                {
+                    Job = request.Job,
+                    Video = dto
+                });
+                await startProcessingQueue.FlushAsync();
             }
             catch (Exception e)
             {
-                log.LogError(e, "SignalR sending error");
-            }
+                log.LogError(e, "Function threw an exception");
 
-            await startProcessingQueue.AddAsync(new StartProcessing
-            {
-                Job = request.Job,
-                Video = dto
-            });
-            await startProcessingQueue.FlushAsync();
+                try
+                {
+                    using var serviceManager = new ServiceManagerBuilder()
+                        .WithOptions(option =>
+                        {
+                            option.ConnectionString = _config["signalrconnectionstring"];
+                        })
+                        .BuildServiceManager();
+                    var dto = new Video
+                    {
+                        JobId = request.Job.Id,
+                        Error = e.Message,
+                        Status = VideoStatus.Error,
+                        UserId = request.Job.UserId,
+                        UserEmail = request.Job.UserEmail
+                    };
+                    using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
+                    await hubContext.Clients.User(request.Job.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(ex, "SignalR sending error");
+                }
+            }
         }
     }
 }
