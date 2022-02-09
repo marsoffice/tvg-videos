@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarsOffice.Tvg.Content.Abstractions;
+using MarsOffice.Tvg.Videos.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Azure.WebJobs;
@@ -36,6 +37,7 @@ namespace MarsOffice.Tvg.Videos
 
                 try
                 {
+                    var dto = new Video { }; // TODO
                     using var serviceManager = new ServiceManagerBuilder()
                         .WithOptions(option =>
                         {
@@ -43,7 +45,7 @@ namespace MarsOffice.Tvg.Videos
                         })
                         .BuildServiceManager();
                     using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
-                    // await hubContext.Clients.User(response.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                    await hubContext.Clients.User(response.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
                 }
                 catch (Exception ex)
                 {
