@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarsOffice.Microfunction;
@@ -61,6 +62,73 @@ namespace MarsOffice.Tvg.Videos
                 return new OkObjectResult(
                    _mapper.Map<IEnumerable<Video>>(entities)
                     );
+            }
+            catch (Exception e)
+            {
+                log.LogError(e, "Exception occured in function");
+                return new BadRequestObjectResult(Errors.Extract(e));
+            }
+        }
+
+        [FunctionName("DeleteVideo")]
+        public async Task<IActionResult> DeleteVideo(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/videos/delete/{jobId}/{id}")] HttpRequest req,
+            [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
+            ILogger log)
+        {
+            try
+            {
+                var principal = MarsOfficePrincipal.Parse(req);
+                var uid = principal.FindFirst("id").Value;
+                var jobId = req.RouteValues["jobId"].ToString();
+                var id = req.RouteValues["id"].ToString();
+                var delOp = TableOperation.Delete(new VideoEntity
+                {
+                    PartitionKey = jobId,
+                    RowKey = id,
+                    UserId = uid
+                });
+                await videosTable.ExecuteAsync(delOp);
+                return new OkResult();
+            }
+            catch (Exception e)
+            {
+                log.LogError(e, "Exception occured in function");
+                return new BadRequestObjectResult(Errors.Extract(e));
+            }
+        }
+
+        [FunctionName("UploadVideo")]
+        public async Task<IActionResult> UploadVideo(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/videos/upload/{jobId}/{id}")] HttpRequest req,
+            [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
+            ILogger log)
+        {
+            try
+            {
+                var principal = MarsOfficePrincipal.Parse(req);
+                var uid = principal.FindFirst("id").Value;
+                var jobId = req.RouteValues["jobId"].ToString();
+                var id = req.RouteValues["id"].ToString();
+                var query = new TableQuery<VideoEntity>()
+                    .Where(
+                        TableQuery.CombineFilters(
+                            TableQuery.CombineFilters(
+                                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, jobId),
+                                TableOperators.And,
+                                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, id)
+                            ),
+                            TableOperators.And,
+                            TableQuery.GenerateFilterCondition("UserId", QueryComparisons.Equal, uid)
+                        )
+                    )
+                    .Take(1);
+
+                var entity = (await videosTable.ExecuteQuerySegmentedAsync(query, null)).Results.First();
+
+                // TODO TikTok
+
+                return new OkResult();
             }
             catch (Exception e)
             {
