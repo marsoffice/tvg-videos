@@ -86,7 +86,8 @@ namespace MarsOffice.Tvg.Videos
                 {
                     PartitionKey = jobId,
                     RowKey = id,
-                    UserId = uid
+                    UserId = uid,
+                    ETag = "*"
                 });
                 await videosTable.ExecuteAsync(delOp);
                 return new OkResult();
