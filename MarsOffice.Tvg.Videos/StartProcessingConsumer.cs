@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -64,21 +63,21 @@ namespace MarsOffice.Tvg.Videos
 
                 // 1. Fire request content
                 await requestContentQueue.AddAsync(new RequestContent { 
-                    ContentGetLatestPosts = request.Job.ContentGetLatestPosts,
-                    ContentIncludeLinks = request.Job.ContentIncludeLinks,
-                    ContentMaxChars = request.Job.ContentMaxChars,
-                    ContentMaxPosts = request.Job.ContentMaxPosts,
-                    ContentMinChars = request.Job.ContentMinChars,
-                    ContentMinPosts = request.Job.ContentMinPosts,
-                    ContentNoOfIncludedTopComments = request.Job.ContentNoOfIncludedTopComments,
-                    ContentStartDate = request.Job.ContentStartDate,
-                    ContentTopic = request.Job.ContentTopic,
-                    ContentTranslateFromLanguage = request.Job.ContentTranslateFromLanguage,
-                    ContentTranslateToLanguage = request.Job.ContentTranslateToLanguage,
-                    ContentType = request.Job.ContentType,
-                    JobId = request.Job.Id,
-                    UserEmail = request.Job.UserEmail,
-                    UserId = request.Job.UserId,
+                    ContentGetLatestPosts = request.Video.ContentGetLatestPosts,
+                    ContentIncludeLinks = request.Video.ContentIncludeLinks,
+                    ContentMaxChars = request.Video.ContentMaxChars,
+                    ContentMaxPosts = request.Video.ContentMaxPosts,
+                    ContentMinChars = request.Video.ContentMinChars,
+                    ContentMinPosts = request.Video.ContentMinPosts,
+                    ContentNoOfIncludedTopComments = request.Video.ContentNoOfIncludedTopComments,
+                    ContentStartDate = request.Video.ContentStartDate,
+                    ContentTopic = request.Video.ContentTopic,
+                    ContentTranslateFromLanguage = request.Video.ContentTranslateFromLanguage,
+                    ContentTranslateToLanguage = request.Video.ContentTranslateToLanguage,
+                    ContentType = request.Video.ContentType,
+                    JobId = request.Video.Id,
+                    UserEmail = request.Video.UserEmail,
+                    UserId = request.Video.UserId,
                     VideoId = request.Video.Id
                 });
                 await requestContentQueue.FlushAsync();

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -33,20 +32,19 @@ namespace MarsOffice.Tvg.Videos
         {
             try
             {
-                var newVideo = new VideoEntity
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    JobId = request.Job.Id,
-                    ETag = "*",
-                    Status = VideoStatus.Created,
-                    CreatedDate = DateTimeOffset.UtcNow,
-                    JobFireDate = request.RequestDate,
-                    UserId = request.Job.UserId,
-                    UserEmail = request.Job.UserEmail,
-                    Translated = !string.IsNullOrEmpty(request.Job.ContentTranslateFromLanguage) && !string.IsNullOrEmpty(request.Job.ContentTranslateToLanguage)
-                };
+                var dtoTemp = _mapper.Map<Video>(request.Job);
+                var newVideo = _mapper.Map<VideoEntity>(dtoTemp);
+                newVideo.Id = Guid.NewGuid().ToString();
+                newVideo.JobId = request.Job.Id;
+                newVideo.ETag = "*";
+                newVideo.Status = VideoStatus.Created;
+                newVideo.CreatedDate = DateTimeOffset.UtcNow;
+                newVideo.JobFireDate = request.RequestDate;
+                newVideo.UserId = request.Job.UserId;
+                newVideo.UserEmail = request.Job.UserEmail;
                 newVideo.PartitionKey = newVideo.JobId;
                 newVideo.RowKey = newVideo.Id;
+                newVideo.CreateDone = true;
 
                 var insertOperation = TableOperation.Insert(newVideo);
                 await videosTable.ExecuteAsync(insertOperation);
