@@ -15,6 +15,7 @@
 		<PackageReference Include="MarsOffice.Tvg.AudioDownloader.Abstractions" Version="1.0.0-dev.8" />
 		<PackageReference Include="MarsOffice.Tvg.Content.Abstractions" Version="1.0.0-dev.19" />
 		<PackageReference Include="MarsOffice.Tvg.Editor.Abstractions" Version="1.0.0-dev.28" />
+		<PackageReference Include="MarsOffice.Tvg.Notifications.Abstractions" Version="1.0.0-dev.9" />
 		<PackageReference Include="MarsOffice.Tvg.Speech.Abstractions" Version="1.0.0-dev.22" />
 		<PackageReference Include="MarsOffice.Tvg.TikTok.Abstractions" Version="1.0.0-dev.1" />
 		<PackageReference Include="MarsOffice.Tvg.Translate.Abstractions" Version="1.0.0-dev.3" />

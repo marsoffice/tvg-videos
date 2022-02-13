@@ -36,6 +36,7 @@ namespace MarsOffice.Tvg.Videos
                 var newVideo = _mapper.Map<VideoEntity>(dtoTemp);
                 newVideo.Id = Guid.NewGuid().ToString();
                 newVideo.JobId = request.Job.Id;
+                newVideo.Name = request.Job.Name;
                 newVideo.ETag = "*";
                 newVideo.Status = VideoStatus.Created;
                 newVideo.CreatedDate = DateTimeOffset.UtcNow;

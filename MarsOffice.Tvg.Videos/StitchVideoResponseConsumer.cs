@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarsOffice.Tvg.Editor.Abstractions;
+using MarsOffice.Tvg.Notifications.Abstractions;
 using MarsOffice.Tvg.Videos.Abstractions;
 using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.SignalR;
@@ -30,6 +31,7 @@ namespace MarsOffice.Tvg.Videos
         public async Task Run(
             [QueueTrigger("stitch-video-response", Connection = "localsaconnectionstring")] StitchVideoResponse response,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
+            [Queue("notifications", Connection = "localsaconnectionstring")] IAsyncCollector<RequestNotification> notificationsQueue,
             // TODO upload
             ILogger log)
         {
@@ -96,10 +98,28 @@ namespace MarsOffice.Tvg.Videos
 
                     if (existingEntity.DisabledAutoUpload == true)
                     {
+                        // notif
+                        await notificationsQueue.AddAsync(new RequestNotification { 
+                            NotificationTypes = new [] {NotificationType.InApp, NotificationType.Email},
+                            PlaceholderData = new System.Collections.Generic.Dictionary<string, string> {
+                                {"name", existingEntity.Name }
+                            },
+                            Recipients = new []
+                            {
+                                new Recipient
+                                {
+                                    Email = response.UserEmail,
+                                    UserId = response.UserId
+                                }
+                            },
+                            Severity = Severity.Success,
+                            TemplateName = "VideoGenerated"
+                        });
+                        await notificationsQueue.FlushAsync();
 
                     } else
                     {
-                        // TODO
+                        // TODO queue tiktok
                     }
 
                     try

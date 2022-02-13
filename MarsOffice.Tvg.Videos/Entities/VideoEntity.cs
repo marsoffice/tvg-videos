@@ -8,6 +8,7 @@ namespace MarsOffice.Tvg.Videos.Entities
     {
         public string Id { get; set; }
         public string JobId { get; set; }
+        public string Name { get; set; }
         public string UserId { get; set; }
         public string UserEmail { get; set; }
         public DateTimeOffset JobFireDate { get; set; }
