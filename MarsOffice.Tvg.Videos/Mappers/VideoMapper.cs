@@ -9,6 +9,8 @@ namespace MarsOffice.Tvg.Videos.Mappers
         public VideoMapper() {
             CreateMap<Video, VideoEntity>().PreserveReferences();
             CreateMap<VideoEntity, Video>().PreserveReferences();
+            CreateMap<VideoEntity, VideoEntity>().PreserveReferences()
+                .ForAllMembers(opt => opt.Condition((source, dest, sourceMember, destMember) => (sourceMember != null)));
         }
     }
 }
