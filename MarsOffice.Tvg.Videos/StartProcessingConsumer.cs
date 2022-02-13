@@ -75,7 +75,7 @@ namespace MarsOffice.Tvg.Videos
                     ContentTranslateFromLanguage = request.Video.ContentTranslateFromLanguage,
                     ContentTranslateToLanguage = request.Video.ContentTranslateToLanguage,
                     ContentType = request.Video.ContentType,
-                    JobId = request.Video.Id,
+                    JobId = request.Job.Id,
                     UserEmail = request.Video.UserEmail,
                     UserId = request.Video.UserId,
                     VideoId = request.Video.Id
