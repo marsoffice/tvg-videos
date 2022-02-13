@@ -87,7 +87,8 @@ namespace MarsOffice.Tvg.Videos
                         ETag = "*",
                         FinalFile = response.FinalVideoLink,
                         FinalFileSasUrl = response.SasUrl,
-                        Status = (int)VideoStatus.Generated
+                        Status = (int)VideoStatus.Generated,
+                        StitchDone = true
                     };
 
                     var mergeOp = TableOperation.Merge(mergeEntity);
