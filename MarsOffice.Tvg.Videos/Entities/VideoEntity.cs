@@ -12,7 +12,7 @@ namespace MarsOffice.Tvg.Videos.Entities
         public string UserId { get; set; }
         public string UserEmail { get; set; }
         public DateTimeOffset? JobFireDate { get; set; }
-        public DateTimeOffset CreatedDate { get; set; }
+        public DateTimeOffset? CreatedDate { get; set; }
         public DateTimeOffset? UpdatedDate { get; set; }
         public int? Status { get; set; }
         public string Error { get; set; }
