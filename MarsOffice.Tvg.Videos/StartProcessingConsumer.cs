@@ -37,12 +37,14 @@ namespace MarsOffice.Tvg.Videos
                 {
                     PartitionKey = request.Video.JobId,
                     RowKey = request.Video.Id,
+                    UpdatedDate = DateTimeOffset.UtcNow,
                     ETag = "*",
                     Status = (int)VideoStatus.Generating,
                 });
                 await videosTable.ExecuteAsync(mergeOperation);
 
                 var dto = request.Video;
+                dto.UpdatedDate = DateTimeOffset.UtcNow;
                 dto.Status = VideoStatus.Generating;
 
                 try
