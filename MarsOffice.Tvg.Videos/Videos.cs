@@ -9,8 +9,10 @@ using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos.Table;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MarsOffice.Tvg.Videos
@@ -18,10 +20,12 @@ namespace MarsOffice.Tvg.Videos
     public class Videos
     {
         private readonly IMapper _mapper;
+        private readonly IConfiguration _config;
 
-        public Videos(IMapper mapper)
+        public Videos(IMapper mapper, IConfiguration config)
         {
             _mapper = mapper;
+            _config = config;
         }
 
         [FunctionName("GetJobVideos")]
@@ -90,6 +94,12 @@ namespace MarsOffice.Tvg.Videos
                     ETag = "*"
                 });
                 await videosTable.ExecuteAsync(delOp);
+
+                var csa = Microsoft.Azure.Storage.CloudStorageAccount.Parse(_config["localsaconnectionstring"]);
+                var blobClient = csa.CreateCloudBlobClient();
+                var containerReference = blobClient.GetContainerReference("editor");
+                var blobRef = containerReference.GetBlockBlobReference($"{id}.mp4");
+                await blobRef.DeleteIfExistsAsync();
                 return new OkResult();
             }
             catch (Exception e)
