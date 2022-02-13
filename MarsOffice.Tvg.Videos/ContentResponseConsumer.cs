@@ -60,7 +60,7 @@ namespace MarsOffice.Tvg.Videos
                         Error = response.Error,
                         PartitionKey = response.JobId,
                         RowKey = response.VideoId,
-                        Status = VideoStatus.Error,
+                        Status = (int)VideoStatus.Error,
                         ETag = "*"
                     });
                     await videosTable.ExecuteAsync(updateOp);
@@ -81,8 +81,7 @@ namespace MarsOffice.Tvg.Videos
                         .Take(1);
                     var existingEntity = (await videosTable.ExecuteQuerySegmentedAsync<VideoEntity>(query, null)).Results.FirstOrDefault();
                     _mapper.Map(existingEntity, dto);
-                    if (existingEntity.Status == VideoStatus.Error || existingEntity.Status == VideoStatus.Generated || existingEntity.Status == VideoStatus.Uploaded 
-                        || existingEntity.ContentDone == true)
+                    if (existingEntity.Status == (int)VideoStatus.Error || existingEntity.Status == (int)VideoStatus.Generated || existingEntity.Status == (int)VideoStatus.Uploaded )
                     {
                         return;
                     }
@@ -185,7 +184,7 @@ namespace MarsOffice.Tvg.Videos
                     Error = e.Message,
                     PartitionKey = response.JobId,
                     RowKey = response.VideoId,
-                    Status = VideoStatus.Error,
+                    Status = (int)VideoStatus.Error,
                     ETag = "*"
                 });
                 await videosTable.ExecuteAsync(updateOp);

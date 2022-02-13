@@ -38,7 +38,7 @@ namespace MarsOffice.Tvg.Videos
                     PartitionKey = request.Video.JobId,
                     RowKey = request.Video.Id,
                     ETag = "*",
-                    Status = VideoStatus.Generating,
+                    Status = (int)VideoStatus.Generating,
                 });
                 await videosTable.ExecuteAsync(mergeOperation);
 
@@ -91,7 +91,7 @@ namespace MarsOffice.Tvg.Videos
                     RowKey = request.Video.Id,
                     Error = e.Message,
                     ETag = "*",
-                    Status = VideoStatus.Error
+                    Status = (int)VideoStatus.Error
                 });
                 await videosTable.ExecuteAsync(mergeOperation);
 

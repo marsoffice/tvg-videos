@@ -38,7 +38,7 @@ namespace MarsOffice.Tvg.Videos
                 newVideo.JobId = request.Job.Id;
                 newVideo.Name = request.Job.Name;
                 newVideo.ETag = "*";
-                newVideo.Status = VideoStatus.Created;
+                newVideo.Status = (int)VideoStatus.Created;
                 newVideo.CreatedDate = DateTimeOffset.UtcNow;
                 newVideo.JobFireDate = request.RequestDate;
                 newVideo.UserId = request.Job.UserId;
@@ -83,7 +83,7 @@ namespace MarsOffice.Tvg.Videos
                     Id = Guid.NewGuid().ToString(),
                     JobId = request.Job.Id,
                     ETag = "*",
-                    Status = VideoStatus.Error,
+                    Status = (int)VideoStatus.Error,
                     Error = e.Message,
                     CreatedDate = DateTimeOffset.UtcNow,
                     JobFireDate = request.RequestDate,
