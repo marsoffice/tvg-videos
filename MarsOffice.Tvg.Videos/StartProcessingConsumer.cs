@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using MarsOffice.Tvg.Content.Abstractions;
 using MarsOffice.Tvg.Videos.Abstractions;
 using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.SignalR;
@@ -28,6 +29,7 @@ namespace MarsOffice.Tvg.Videos
         [FunctionName("StartProcessingConsumer")]
         public async Task Run([QueueTrigger("start-processing", Connection = "localsaconnectionstring")] StartProcessing request,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
+            [Queue("request-content", Connection = "localsaconnectionstring")] IAsyncCollector<RequestContent> requestContentQueue,
             ILogger log)
         {
             try
@@ -37,7 +39,7 @@ namespace MarsOffice.Tvg.Videos
                     PartitionKey = request.Video.JobId,
                     RowKey = request.Video.Id,
                     ETag = "*",
-                    Status = VideoStatus.Generating
+                    Status = VideoStatus.Generating,
                 });
                 await videosTable.ExecuteAsync(mergeOperation);
 
@@ -60,8 +62,26 @@ namespace MarsOffice.Tvg.Videos
                     log.LogError(e, "SignalR sending error");
                 }
 
-                // TODO logic
-
+                // 1. Fire request content
+                await requestContentQueue.AddAsync(new RequestContent { 
+                    ContentGetLatestPosts = request.Job.ContentGetLatestPosts,
+                    ContentIncludeLinks = request.Job.ContentIncludeLinks,
+                    ContentMaxChars = request.Job.ContentMaxChars,
+                    ContentMaxPosts = request.Job.ContentMaxPosts,
+                    ContentMinChars = request.Job.ContentMinChars,
+                    ContentMinPosts = request.Job.ContentMinPosts,
+                    ContentNoOfIncludedTopComments = request.Job.ContentNoOfIncludedTopComments,
+                    ContentStartDate = request.Job.ContentStartDate,
+                    ContentTopic = request.Job.ContentTopic,
+                    ContentTranslateFromLanguage = request.Job.ContentTranslateFromLanguage,
+                    ContentTranslateToLanguage = request.Job.ContentTranslateToLanguage,
+                    ContentType = request.Job.ContentType,
+                    JobId = request.Job.Id,
+                    UserEmail = request.Job.UserEmail,
+                    UserId = request.Job.UserId,
+                    VideoId = request.Video.Id
+                });
+                await requestContentQueue.FlushAsync();
             }
             catch (Exception e)
             {

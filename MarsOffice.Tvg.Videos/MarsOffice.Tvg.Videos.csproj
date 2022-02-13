@@ -12,7 +12,13 @@
 	<ItemGroup>
 		<PackageReference Include="MarsOffice.Microfunction" Version="3.0.12" />
 		<PackageReference Include="MarsOffice.Dto" Version="3.0.12" />
+		<PackageReference Include="MarsOffice.Tvg.AudioDownloader.Abstractions" Version="1.0.0-dev.8" />
 		<PackageReference Include="MarsOffice.Tvg.Content.Abstractions" Version="1.0.0-dev.19" />
+		<PackageReference Include="MarsOffice.Tvg.Editor.Abstractions" Version="1.0.0-dev.28" />
+		<PackageReference Include="MarsOffice.Tvg.Speech.Abstractions" Version="1.0.0-dev.22" />
+		<PackageReference Include="MarsOffice.Tvg.TikTok.Abstractions" Version="1.0.0-dev.1" />
+		<PackageReference Include="MarsOffice.Tvg.Translate.Abstractions" Version="1.0.0-dev.3" />
+		<PackageReference Include="MarsOffice.Tvg.VideoDownloader.Abstractions" Version="1.0.0-dev.6" />
 		<PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
 		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />

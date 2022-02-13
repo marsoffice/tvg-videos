@@ -42,7 +42,8 @@ namespace MarsOffice.Tvg.Videos
                     CreatedDate = DateTimeOffset.UtcNow,
                     JobFireDate = request.RequestDate,
                     UserId = request.Job.UserId,
-                    UserEmail = request.Job.UserEmail
+                    UserEmail = request.Job.UserEmail,
+                    Translated = !string.IsNullOrEmpty(request.Job.ContentTranslateFromLanguage) && !string.IsNullOrEmpty(request.Job.ContentTranslateToLanguage)
                 };
                 newVideo.PartitionKey = newVideo.JobId;
                 newVideo.RowKey = newVideo.Id;

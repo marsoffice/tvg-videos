@@ -14,12 +14,21 @@ namespace MarsOffice.Tvg.Videos.Abstractions
         public VideoStatus Status { get; set; }
         public string Error { get; set; }
         public string ContentText { get; set; }
+        public string ContentCategory { get; set; }
+        public string Durations { get; set; }
         public string SpeechFile { get; set; }
         public string AudioBackgroundFile { get; set; }
         public string VideoBackgroundFile { get; set; }
-        public string EditorJobId { get; set; }
         public string FinalFile { get; set; }
         public long? FinalFileDurationInMillis { get; set; }
-        public long? FinalFileSizeInBytes { get; set; }
+
+        public bool? Translated { get; set; }
+        public bool? ContentDone { get; set; }
+        public bool? TranslationDone { get; set; }
+        public bool? SpeechDone { get; set; }
+        public bool? AudioBackgroundDone { get; set; }
+        public bool? VideoBackgroundDone { get; set; }
+        public bool? StitchDone { get; set; }
+        public bool? UploadDone { get; set; }
     }
 }
