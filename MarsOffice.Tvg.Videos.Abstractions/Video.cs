@@ -12,7 +12,7 @@ namespace MarsOffice.Tvg.Videos.Abstractions
         public DateTimeOffset JobFireDate { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset? UpdatedDate { get; set; }
-        public VideoStatus Status { get; set; }
+        public VideoStatus? Status { get; set; }
         public string Error { get; set; }
         public string ContentText { get; set; }
         public string ContentCategory { get; set; }
