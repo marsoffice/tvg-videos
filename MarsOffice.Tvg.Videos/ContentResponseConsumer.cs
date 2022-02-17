@@ -207,6 +207,8 @@ namespace MarsOffice.Tvg.Videos
                 {
                     log.LogError(ex, "SignalR sending error");
                 }
+
+                throw;
             }
         }
     }
