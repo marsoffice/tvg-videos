@@ -10,6 +10,7 @@ using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
+using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.Storage.Queue.Protocol;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -32,12 +33,12 @@ namespace MarsOffice.Tvg.Videos
 
         [FunctionName("TranslateResponseConsumer")]
         public async Task Run(
-            [QueueTrigger("translation-response", Connection = "localsaconnectionstring")] QueueMessage message,
+            [QueueTrigger("translation-response", Connection = "localsaconnectionstring")] CloudQueueMessage message,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
             [Queue("request-speech", Connection = "localsaconnectionstring")] IAsyncCollector<RequestSpeech> requestSpeechQueue,
             ILogger log)
         {
-            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<TranslationResponse>(message.Text,
+            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<TranslationResponse>(message.AsString,
                     new Newtonsoft.Json.JsonSerializerSettings
                     {
                         ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),

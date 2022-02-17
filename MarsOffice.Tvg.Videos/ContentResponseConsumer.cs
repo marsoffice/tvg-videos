@@ -13,6 +13,7 @@ using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
+using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.Storage.Queue.Protocol;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -35,7 +36,7 @@ namespace MarsOffice.Tvg.Videos
 
         [FunctionName("ContentReceivedConsumer")]
         public async Task Run(
-            [QueueTrigger("content-response", Connection = "localsaconnectionstring")] QueueMessage message,
+            [QueueTrigger("content-response", Connection = "localsaconnectionstring")] CloudQueueMessage message,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
             [Queue("request-videobackground", Connection = "localsaconnectionstring")] IAsyncCollector<RequestVideoBackground> requestVideoBackgroundQueue,
             [Queue("request-audiobackground", Connection = "localsaconnectionstring")] IAsyncCollector<RequestAudioBackground> requestAudioBackgroundQueue,
@@ -43,7 +44,7 @@ namespace MarsOffice.Tvg.Videos
             [Queue("request-speech", Connection = "localsaconnectionstring")] IAsyncCollector<RequestSpeech> requestSpeechQueue,
             ILogger log)
         {
-            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<ContentResponse>(message.Text,
+            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<ContentResponse>(message.AsString,
                     new Newtonsoft.Json.JsonSerializerSettings
                     {
                         ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),

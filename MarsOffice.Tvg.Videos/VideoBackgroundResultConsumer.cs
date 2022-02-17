@@ -11,6 +11,7 @@ using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
+using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.Storage.Queue.Protocol;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -33,12 +34,12 @@ namespace MarsOffice.Tvg.Videos
 
         [FunctionName("VideoBackgroundResultConsumer")]
         public async Task Run(
-            [QueueTrigger("videobackground-result", Connection = "localsaconnectionstring")] QueueMessage message,
+            [QueueTrigger("videobackground-result", Connection = "localsaconnectionstring")] CloudQueueMessage message,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
             [Queue("request-stitch-video", Connection = "localsaconnectionstring")] IAsyncCollector<RequestStitchVideo> requestStitchVideoQueue,
             ILogger log)
         {
-            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<VideoBackgroundResult>(message.Text,
+            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<VideoBackgroundResult>(message.AsString,
                     new Newtonsoft.Json.JsonSerializerSettings
                     {
                         ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
