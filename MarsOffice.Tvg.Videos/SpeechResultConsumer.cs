@@ -11,6 +11,7 @@ using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
+using Microsoft.Azure.Storage.Queue.Protocol;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -32,11 +33,17 @@ namespace MarsOffice.Tvg.Videos
 
         [FunctionName("SpeechResultConsumer")]
         public async Task Run(
-            [QueueTrigger("speech-result", Connection = "localsaconnectionstring")] SpeechResult response,
+            [QueueTrigger("speech-result", Connection = "localsaconnectionstring")] QueueMessage message,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
             [Queue("request-stitch-video", Connection = "localsaconnectionstring")] IAsyncCollector<RequestStitchVideo> requestStitchVideoQueue,
             ILogger log)
         {
+            var response = Newtonsoft.Json.JsonConvert.DeserializeObject<SpeechResult>(message.Text,
+                    new Newtonsoft.Json.JsonSerializerSettings
+                    {
+                        ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
+                        NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore
+                    });
             var dto = new Video
             {
                 Id = response.VideoId,
@@ -152,34 +159,36 @@ namespace MarsOffice.Tvg.Videos
             catch (Exception e)
             {
                 log.LogError(e, "Function threw an exception");
-
-                var updateOp = TableOperation.Merge(new VideoEntity
+                if (message.DequeueCount >= 5)
                 {
-                    Error = e.Message,
-                    PartitionKey = response.JobId,
-                    RowKey = response.VideoId,
-                    Status = (int)VideoStatus.Error,
-                    ETag = "*"
-                });
-                await videosTable.ExecuteAsync(updateOp);
+                    var updateOp = TableOperation.Merge(new VideoEntity
+                    {
+                        Error = e.Message,
+                        PartitionKey = response.JobId,
+                        RowKey = response.VideoId,
+                        Status = (int)VideoStatus.Error,
+                        ETag = "*"
+                    });
+                    await videosTable.ExecuteAsync(updateOp);
 
-                dto.Status = VideoStatus.Error;
-                dto.Error = e.Message;
+                    dto.Status = VideoStatus.Error;
+                    dto.Error = e.Message;
 
-                try
-                {
-                    using var serviceManager = new ServiceManagerBuilder()
-                        .WithOptions(option =>
-                        {
-                            option.ConnectionString = _config["signalrconnectionstring"];
-                        })
-                        .BuildServiceManager();
-                    using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
-                    await hubContext.Clients.User(response.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
-                }
-                catch (Exception ex)
-                {
-                    log.LogError(ex, "SignalR sending error");
+                    try
+                    {
+                        using var serviceManager = new ServiceManagerBuilder()
+                            .WithOptions(option =>
+                            {
+                                option.ConnectionString = _config["signalrconnectionstring"];
+                            })
+                            .BuildServiceManager();
+                        using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
+                        await hubContext.Clients.User(response.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.LogError(ex, "SignalR sending error");
+                    }
                 }
                 throw;
             }
