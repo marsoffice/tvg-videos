@@ -126,6 +126,8 @@ namespace MarsOffice.Tvg.Videos
                             TextBoxBorderColor = existingEntity.TextBoxBorderColor,
                             TextBoxColor = existingEntity.TextBoxColor,
                             TextBoxOpacity = existingEntity.TextBoxOpacity,
+                            FinalFileDurationInMillis = existingEntity.FinalFileDurationInMillis,
+                            TrimGracefullyToMaxDuration = existingEntity.TrimGracefullyToMaxDuration,
                             TextColor = existingEntity.TextColor,
                             TextFontFamily = existingEntity.TextFontFamily,
                             TextFontSize = existingEntity.TextFontSize,

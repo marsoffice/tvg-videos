@@ -25,6 +25,7 @@ namespace MarsOffice.Tvg.Videos.Entities
         public string FinalFile { get; set; }
         public string FinalFileSasUrl { get; set; }
         public long? FinalFileDurationInMillis { get; set; }
+        public bool? TrimGracefullyToMaxDuration { get; set; }
 
 
         public bool? CreateDone { get; set; }
