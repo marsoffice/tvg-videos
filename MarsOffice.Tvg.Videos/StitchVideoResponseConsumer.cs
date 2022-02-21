@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarsOffice.Tvg.Editor.Abstractions;
 using MarsOffice.Tvg.Notifications.Abstractions;
+using MarsOffice.Tvg.TikTok.Abstractions;
 using MarsOffice.Tvg.Videos.Abstractions;
 using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.SignalR;
@@ -34,7 +35,7 @@ namespace MarsOffice.Tvg.Videos
             [QueueTrigger("stitch-video-response", Connection = "localsaconnectionstring")] CloudQueueMessage message,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
             // [Queue("notifications", Connection = "localsaconnectionstring")] IAsyncCollector<RequestNotification> notificationsQueue,
-            // TODO upload
+            [Queue("request-upload-video", Connection = "localsaconnectionstring")] IAsyncCollector<RequestUploadVideo> requestUploadVideoQueue,
             ILogger log)
         {
             var response = Newtonsoft.Json.JsonConvert.DeserializeObject<StitchVideoResponse>(message.AsString,
@@ -50,7 +51,7 @@ namespace MarsOffice.Tvg.Videos
                 UserEmail = response.UserEmail,
                 UserId = response.UserId,
                 Error = response.Error,
-                Status = response.Success ? VideoStatus.Generating : VideoStatus.Error
+                Status = response.Success ? VideoStatus.Generated : VideoStatus.Error
             };
             try
             {
@@ -87,6 +88,9 @@ namespace MarsOffice.Tvg.Videos
                         return;
                     }
 
+                    var autoUpload = existingEntity.DisabledAutoUpload == null || existingEntity.DisabledAutoUpload == false;
+
+
                     var mergeEntity = new VideoEntity
                     {
                         PartitionKey = response.JobId,
@@ -95,8 +99,9 @@ namespace MarsOffice.Tvg.Videos
                         ETag = "*",
                         FinalFile = response.FinalVideoLink,
                         FinalFileSasUrl = response.SasUrl,
-                        Status = (int)VideoStatus.Generated,
-                        StitchDone = true
+                        Status = autoUpload ? (int)VideoStatus.Uploading : (int)VideoStatus.Generated,
+                        StitchDone = true,
+                        UploadDone = false
                     };
 
                     var mergeOp = TableOperation.Merge(mergeEntity);
@@ -104,7 +109,7 @@ namespace MarsOffice.Tvg.Videos
                     _mapper.Map(mergeEntity, existingEntity);
                     _mapper.Map(existingEntity, dto);
 
-                    if (existingEntity.DisabledAutoUpload == true)
+                    if (!autoUpload)
                     {
                         //// notif
                         //await notificationsQueue.AddAsync(new RequestNotification { 
@@ -125,9 +130,23 @@ namespace MarsOffice.Tvg.Videos
                         //});
                         //await notificationsQueue.FlushAsync();
 
-                    } else
+                    }
+                    else
                     {
-                        // TODO queue tiktok
+                        if (existingEntity.AutoUploadTikTokAccounts == null || !existingEntity.AutoUploadTikTokAccounts.Any())
+                        {
+                            throw new Exception("No TikTok accounts set for auto upload");
+                        }
+                        await requestUploadVideoQueue.AddAsync(new RequestUploadVideo
+                        {
+                            JobId = existingEntity.JobId,
+                            OpenIds = existingEntity.AutoUploadTikTokAccounts?.Split(",").ToList(),
+                            UserEmail = response.UserEmail,
+                            UserId = response.UserId,
+                            VideoId = response.VideoId,
+                            VideoPath = existingEntity.FinalFile
+                        });
+                        await requestUploadVideoQueue.FlushAsync();
                     }
 
                     try

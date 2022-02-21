@@ -3,8 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using MarsOffice.Tvg.Editor.Abstractions;
-using MarsOffice.Tvg.Notifications.Abstractions;
 using MarsOffice.Tvg.TikTok.Abstractions;
 using MarsOffice.Tvg.Videos.Abstractions;
 using MarsOffice.Tvg.Videos.Entities;
@@ -12,7 +10,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Azure.Storage.Queue;
-using Microsoft.Azure.Storage.Queue.Protocol;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -35,7 +32,6 @@ namespace MarsOffice.Tvg.Videos
             [QueueTrigger("video-upload-result", Connection = "localsaconnectionstring")] CloudQueueMessage message,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
             // [Queue("notifications", Connection = "localsaconnectionstring")] IAsyncCollector<RequestNotification> notificationsQueue,
-            // TODO upload
             ILogger log)
         {
             var response = Newtonsoft.Json.JsonConvert.DeserializeObject<VideoUploadResult>(message.AsString,
@@ -51,7 +47,7 @@ namespace MarsOffice.Tvg.Videos
                 UserEmail = response.UserEmail,
                 UserId = response.UserId,
                 Error = response.Error,
-                Status = response.Success ? VideoStatus.Uploading : VideoStatus.Error
+                Status = response.Success ? VideoStatus.Uploaded : VideoStatus.Error
             };
             try
             {
@@ -95,38 +91,13 @@ namespace MarsOffice.Tvg.Videos
                         UpdatedDate = DateTimeOffset.UtcNow,
                         ETag = "*",
                         Status = (int)VideoStatus.Uploaded,
+                        UploadDone = true
                     };
 
                     var mergeOp = TableOperation.Merge(mergeEntity);
                     await videosTable.ExecuteAsync(mergeOp);
                     _mapper.Map(mergeEntity, existingEntity);
                     _mapper.Map(existingEntity, dto);
-
-                    if (existingEntity.DisabledAutoUpload == true)
-                    {
-                        //// notif
-                        //await notificationsQueue.AddAsync(new RequestNotification { 
-                        //    NotificationTypes = new [] {NotificationType.InApp, NotificationType.Email},
-                        //    PlaceholderData = new System.Collections.Generic.Dictionary<string, string> {
-                        //        {"name", existingEntity.Name }
-                        //    },
-                        //    Recipients = new []
-                        //    {
-                        //        new Recipient
-                        //        {
-                        //            Email = response.UserEmail,
-                        //            UserId = response.UserId
-                        //        }
-                        //    },
-                        //    Severity = Severity.Success,
-                        //    TemplateName = "VideoGenerated"
-                        //});
-                        //await notificationsQueue.FlushAsync();
-
-                    } else
-                    {
-                        // TODO queue tiktok
-                    }
 
                     try
                     {
