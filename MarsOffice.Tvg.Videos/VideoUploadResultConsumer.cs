@@ -65,6 +65,22 @@ namespace MarsOffice.Tvg.Videos
 
                     dto.Status = VideoStatus.Error;
                     dto.Error = response.Error;
+
+                    try
+                    {
+                        using var serviceManager = new ServiceManagerBuilder()
+                            .WithOptions(option =>
+                            {
+                                option.ConnectionString = _config["signalrconnectionstring"];
+                            })
+                            .BuildServiceManager();
+                        using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
+                        await hubContext.Clients.User(response.UserId).SendAsync("videoUpdate", dto, CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.LogError(ex, "SignalR sending error");
+                    }
                 }
                 else
                 {
