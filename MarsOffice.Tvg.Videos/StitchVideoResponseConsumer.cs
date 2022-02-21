@@ -144,7 +144,7 @@ namespace MarsOffice.Tvg.Videos
                             UserEmail = response.UserEmail,
                             UserId = response.UserId,
                             VideoId = response.VideoId,
-                            VideoPath = existingEntity.FinalFile
+                            VideoPath = existingEntity.FinalFile.Replace("/devstoreaccount1/", "")
                         });
                         await requestUploadVideoQueue.FlushAsync();
                     }

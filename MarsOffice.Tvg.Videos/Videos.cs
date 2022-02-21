@@ -157,7 +157,7 @@ namespace MarsOffice.Tvg.Videos
                     JobId = jobId,
                     VideoId = id,
                     UserId = uid,
-                    VideoPath = entity.FinalFile,
+                    VideoPath = entity.FinalFile.Replace("/devstoreaccount1/", ""),
                     OpenIds = entity.AutoUploadTikTokAccounts?.Split(",")
                 });
                 await requestUploadVideoQueue.FlushAsync();
