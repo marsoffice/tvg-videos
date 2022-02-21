@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarsOffice.Microfunction;
+using MarsOffice.Tvg.TikTok.Abstractions;
 using MarsOffice.Tvg.Videos.Abstractions;
 using MarsOffice.Tvg.Videos.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos.Table;
+using Microsoft.Azure.SignalR.Management;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -113,6 +117,7 @@ namespace MarsOffice.Tvg.Videos
         public async Task<IActionResult> UploadVideo(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/videos/upload/{jobId}/{id}")] HttpRequest req,
             [Table("Videos", Connection = "localsaconnectionstring")] CloudTable videosTable,
+            [Queue("request-upload-video", Connection = "localsaconnectionstring")] IAsyncCollector<RequestUploadVideo> requestUploadVideoQueue,
             ILogger log)
         {
             try
@@ -137,7 +142,47 @@ namespace MarsOffice.Tvg.Videos
 
                 var entity = (await videosTable.ExecuteQuerySegmentedAsync(query, null)).Results.First();
 
-                // TODO TikTok
+                if (entity.AutoUploadTikTokAccounts == null || !entity.AutoUploadTikTokAccounts.Any())
+                {
+                    throw new Exception("No TikTok accounts set for upload");
+                }
+
+                if (string.IsNullOrEmpty(entity.FinalFile))
+                {
+                    throw new Exception("Video not generated yet.");
+                }
+
+                await requestUploadVideoQueue.AddAsync(new RequestUploadVideo
+                {
+                    JobId = jobId,
+                    VideoId = id,
+                    UserId = uid,
+                    VideoPath = entity.FinalFile,
+                    OpenIds = entity.AutoUploadTikTokAccounts?.Split(",")
+                });
+                await requestUploadVideoQueue.FlushAsync();
+
+                entity.Status = (int)VideoStatus.Uploading;
+                entity.ETag = "*";
+                var updateOp = TableOperation.Merge(entity);
+                await videosTable.ExecuteAsync(updateOp);
+
+                var dto = _mapper.Map<Video>(entity);
+                try
+                {
+                    using var serviceManager = new ServiceManagerBuilder()
+                        .WithOptions(option =>
+                        {
+                            option.ConnectionString = _config["signalrconnectionstring"];
+                        })
+                        .BuildServiceManager();
+                    using var hubContext = await serviceManager.CreateHubContextAsync("main", CancellationToken.None);
+                    await hubContext.Clients.User(uid).SendAsync("videoUpdate", dto, CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(ex, "SignalR sending error");
+                }
 
                 return new OkResult();
             }
