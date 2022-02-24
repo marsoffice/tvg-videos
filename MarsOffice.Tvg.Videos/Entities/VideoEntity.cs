@@ -58,7 +58,9 @@ namespace MarsOffice.Tvg.Videos.Entities
         public long? SpeechPauseAfterInMillis { get; set; }
         public int? AudioBackgroundQuality { get; set; }
         public float? AudioBackgroundVolumeInPercent { get; set; }
+        public string SelectedAudioBackground { get; set; }
         public string VideoBackgroundResolution { get; set; }
+        public string SelectedVideoBackground { get; set; }
         public string TextFontFamily { get; set; }
         public float? TextFontSize { get; set; }
         public string TextBoxColor { get; set; }

@@ -15,6 +15,7 @@ namespace MarsOffice.Tvg.Videos.Abstractions
         public VideoStatus Status { get; set; }
         public string Error { get; set; }
         public string ContentText { get; set; }
+        public string SelectedContent { get; set; }
         public string ContentCategory { get; set; }
         public string Durations { get; set; }
         public string SpeechFile { get; set; }
@@ -57,7 +58,11 @@ namespace MarsOffice.Tvg.Videos.Abstractions
         public long? SpeechPauseAfterInMillis { get; set; }
         public int? AudioBackgroundQuality { get; set; }
         public float? AudioBackgroundVolumeInPercent { get; set; }
+        public string SelectedAudioBackground { get; set; }
+
         public string VideoBackgroundResolution { get; set; }
+        public string SelectedVideoBackground { get; set; }
+
         public string TextFontFamily { get; set; }
         public float? TextFontSize { get; set; }
         public string TextBoxColor { get; set; }
