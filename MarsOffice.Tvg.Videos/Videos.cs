@@ -104,6 +104,10 @@ namespace MarsOffice.Tvg.Videos
                 var containerReference = blobClient.GetContainerReference("editor");
                 var blobRef = containerReference.GetBlockBlobReference($"{id}.mp4");
                 await blobRef.DeleteIfExistsAsync();
+
+                var jobsDataContainerReference = blobClient.GetContainerReference("jobsdata");
+                var ttsBlobRef = jobsDataContainerReference.GetBlockBlobReference($"{id}/tts.mp3");
+                await ttsBlobRef.DeleteIfExistsAsync();
                 return new OkResult();
             }
             catch (Exception e)
