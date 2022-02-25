@@ -51,22 +51,22 @@ namespace MarsOffice.Tvg.Videos.Entities
         public bool? ContentIncludeLinks { get; set; }
         public int? ContentMinPosts { get; set; }
         public int? ContentMaxPosts { get; set; }
-        public float? SpeechPitch { get; set; }
-        public float? SpeechSpeed { get; set; }
+        public double? SpeechPitch { get; set; }
+        public double? SpeechSpeed { get; set; }
         public string SpeechType { get; set; }
         public string SpeechLanguage { get; set; }
         public long? SpeechPauseBeforeInMillis { get; set; }
         public long? SpeechPauseAfterInMillis { get; set; }
         public int? AudioBackgroundQuality { get; set; }
-        public float? AudioBackgroundVolumeInPercent { get; set; }
+        public double? AudioBackgroundVolumeInPercent { get; set; }
         public string SelectedAudioBackground { get; set; }
         public string VideoBackgroundResolution { get; set; }
         public string SelectedVideoBackground { get; set; }
         public string TextFontFamily { get; set; }
-        public float? TextFontSize { get; set; }
+        public double? TextFontSize { get; set; }
         public string TextBoxColor { get; set; }
         public string TextColor { get; set; }
-        public float? TextBoxOpacity { get; set; }
+        public double? TextBoxOpacity { get; set; }
         public string TextBoxBorderColor { get; set; }
         public bool? DisabledAutoUpload { get; set; }
         public string PostDescription { get; set; }
