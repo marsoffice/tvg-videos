@@ -17,6 +17,7 @@ namespace MarsOffice.Tvg.Videos.Entities
         public int? Status { get; set; }
         public string Error { get; set; }
         public string ContentText { get; set; }
+        public string SelectedContent { get; set; }
         public string ContentCategory { get; set; }
         public string Durations { get; set; }
         public string SpeechFile { get; set; }

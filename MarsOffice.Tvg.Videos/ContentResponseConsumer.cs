@@ -145,26 +145,33 @@ namespace MarsOffice.Tvg.Videos
                         await requestSpeechQueue.FlushAsync();
                     }
 
-                    await requestAudioBackgroundQueue.AddAsync(new RequestAudioBackground { 
-                        Category = response.Category,
-                        VideoId = response.VideoId,
-                        JobId = response.JobId,
-                        LanguageCode = existingEntity.SpeechLanguage,
-                        UserEmail = response.UserEmail,
-                        UserId = response.UserId
-                    });
-                    await requestAudioBackgroundQueue.FlushAsync();
-
-                    await requestVideoBackgroundQueue.AddAsync(new RequestVideoBackground
+                    if (existingEntity.AudioBackgroundDone != true)
                     {
-                        Category = response.Category,
-                        VideoId = response.VideoId,
-                        JobId = response.JobId,
-                        LanguageCode = existingEntity.SpeechLanguage,
-                        UserEmail = response.UserEmail,
-                        UserId = response.UserId
-                    });
-                    await requestVideoBackgroundQueue.FlushAsync();
+                        await requestAudioBackgroundQueue.AddAsync(new RequestAudioBackground
+                        {
+                            Category = response.Category,
+                            VideoId = response.VideoId,
+                            JobId = response.JobId,
+                            LanguageCode = existingEntity.SpeechLanguage,
+                            UserEmail = response.UserEmail,
+                            UserId = response.UserId
+                        });
+                        await requestAudioBackgroundQueue.FlushAsync();
+                    }
+
+                    if (existingEntity.VideoBackgroundDone != true)
+                    {
+                        await requestVideoBackgroundQueue.AddAsync(new RequestVideoBackground
+                        {
+                            Category = response.Category,
+                            VideoId = response.VideoId,
+                            JobId = response.JobId,
+                            LanguageCode = existingEntity.SpeechLanguage,
+                            UserEmail = response.UserEmail,
+                            UserId = response.UserId
+                        });
+                        await requestVideoBackgroundQueue.FlushAsync();
+                    }
                 }
 
                 try

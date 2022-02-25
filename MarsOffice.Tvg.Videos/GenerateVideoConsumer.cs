@@ -54,6 +54,24 @@ namespace MarsOffice.Tvg.Videos
                 newVideo.RowKey = newVideo.Id;
                 newVideo.CreateDone = true;
 
+                if (!string.IsNullOrEmpty(newVideo.SelectedContent))
+                {
+                    newVideo.ContentText = newVideo.SelectedContent;
+                    newVideo.ContentDone = true;
+                }
+
+                if (!string.IsNullOrEmpty(newVideo.SelectedAudioBackground))
+                {
+                    newVideo.AudioBackgroundDone = true;
+                    newVideo.AudioBackgroundFile = "audio/" + newVideo.SelectedAudioBackground;
+                }
+
+                if (!string.IsNullOrEmpty(newVideo.SelectedVideoBackground))
+                {
+                    newVideo.VideoBackgroundDone = true;
+                    newVideo.VideoBackgroundFile = "video/" + newVideo.SelectedVideoBackground;
+                }
+                
                 var insertOperation = TableOperation.Insert(newVideo);
                 await videosTable.ExecuteAsync(insertOperation);
                 var dto = _mapper.Map<Video>(newVideo);
