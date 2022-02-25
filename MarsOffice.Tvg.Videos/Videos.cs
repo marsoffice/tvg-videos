@@ -54,21 +54,27 @@ namespace MarsOffice.Tvg.Videos
                             TableQuery.GenerateFilterCondition("UserId", QueryComparisons.Equal, uid)
                         )
                     )
-                    .OrderByDesc("Timestamp");
-                var hasData = true;
+                    .OrderByDesc("Timestamp")
+                    .Take(int.Parse(req.Query["pageSize"]));
+
                 TableContinuationToken tct = null;
-                while (hasData)
+                if (req.Query.ContainsKey("nextRowKey"))
                 {
-                    var response = await videosTable.ExecuteQuerySegmentedAsync(query, tct);
-                    entities.AddRange(response);
-                    tct = response.ContinuationToken;
-                    if (tct == null)
+                    tct = new TableContinuationToken
                     {
-                        hasData = false;
-                    }
+                        NextPartitionKey = jobId,
+                        NextRowKey = req.Query["nextRowKey"]
+                    };
                 }
+                var response = await videosTable.ExecuteQuerySegmentedAsync(query, tct);
+                entities.AddRange(response);
+                tct = response.ContinuationToken;
                 return new OkObjectResult(
-                   _mapper.Map<IEnumerable<Video>>(entities)
+                   new VideosList
+                   {
+                       Items = _mapper.Map<IEnumerable<Video>>(entities),
+                       NextRowKey = tct?.NextRowKey
+                   }
                     );
             }
             catch (Exception e)
