@@ -32,9 +32,14 @@ namespace MarsOffice.Tvg.Videos
                 var blobClient = csa.CreateCloudBlobClient();
                 var jobsDataContainer = blobClient.GetContainerReference("jobsdata");
 
+                var nowMinusOneDay = DateTimeOffset.UtcNow.AddDays(-1);
+
                 var query = new TableQuery<VideoEntity>()
                     .Where(
                         TableQuery.CombineFilters(
+                            TableQuery.GenerateFilterConditionForDate("Timestamp", QueryComparisons.LessThanOrEqual, nowMinusOneDay),
+                            TableOperators.Or,
+                            TableQuery.CombineFilters(
                             TableQuery.GenerateFilterCondition(
                                 "Status",
                                 QueryComparisons.Equal,
@@ -46,6 +51,7 @@ namespace MarsOffice.Tvg.Videos
                                 QueryComparisons.Equal,
                                 ((int)VideoStatus.Uploaded).ToString()
                             )
+                        )
                         )
                     );
 
